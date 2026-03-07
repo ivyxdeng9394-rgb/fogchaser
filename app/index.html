@@ -1,1 +1,59 @@
-<!DOCTYPE html><html><body><p>Loading...</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Fogchaser — DC Metro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="header">
+  <h1 id="header-title">fogchaser</h1>
+  <div class="vr"></div>
+  <span id="updated-label">—</span>
+</div>
+
+<!-- Tonight's go/no-go decision — one clear answer before the map -->
+<div id="tonight-bar">
+  <span id="tonight-score"></span>
+  <span id="tonight-text"></span>
+</div>
+
+<div id="map"></div>
+
+<div id="time-bar">
+  <label id="hour-label">—</label>
+  <div id="exposure-strip"></div>
+  <input type="range" id="hour-slider" min="0" max="0" value="0" />
+</div>
+
+<!-- Bottom sheet: slides up above time bar on map tap -->
+<div id="info-sheet">
+  <div id="sheet-peek">
+    <div id="sheet-location">Tap the map to explore</div>
+    <div id="sheet-score-label"></div>
+    <button id="sheet-close" aria-label="Close">✕</button>
+  </div>
+  <div id="sheet-body">
+    <div id="prob-value">—</div>
+    <div id="prob-label">—</div>
+    <button id="why-toggle">Why this score</button>
+    <div id="why-factors"></div>
+    <div id="approx-note"></div>
+  </div>
+</div>
+
+<div id="loading">Loading forecast</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/georaster@1.5.6/dist/georaster.browser.bundle.min.js"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet@3.10.0/dist/georaster-layer-for-leaflet.min.js"></script>
+<script src="https://unpkg.com/geoblaze@2.8.0/dist/geoblaze.web.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
