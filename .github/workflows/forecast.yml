@@ -1,0 +1,56 @@
+name: Fog Forecast
+
+on:
+  schedule:
+    # 30min after each HRRR run: :30 at 00, 06, 12, 18 UTC
+    # Running at :30 (not :01) gives HRRR files time to be fully published,
+    # especially fxx=10-12 which are published last.
+    - cron: "30 0,6,12,18 * * *"
+  workflow_dispatch:   # manual trigger from GitHub UI for testing
+
+# Cancel any in-progress run when a new one starts — prevents job queue buildup
+# if a run takes longer than expected (e.g., HRRR data delayed).
+concurrency:
+  group: forecast
+  cancel-in-progress: true
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45   # hard cap — prevents hung jobs from blocking future runs
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install eccodes (required by Herbie, cannot install via pip)
+        run: sudo apt-get install -y libeccodes-dev
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run forecast pipeline
+        env:
+          R2_ACCOUNT_ID:         ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID:      ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY:  ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME:        ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL:         ${{ secrets.R2_PUBLIC_URL }}
+          HRRR_CACHE_DIR:        /tmp/hrrr_cache
+        run: python3 scripts/run_live_forecast.py
+
+      - name: Commit updated manifest
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name  "GitHub Actions"
+          git pull --rebase origin main
+          git add app/data/manifest.json
+          git diff --cached --quiet || \
+            git commit -m "forecast: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
