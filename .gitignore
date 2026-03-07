@@ -1,0 +1,30 @@
+# HRRR downloaded files (not for git)
+*.grib2
+/tmp/hrrr_live/
+/tmp/hrrr_cache/
+# Note: HRRR training data lives at /Users/dengzhenhua/data/hrrr/ (outside project dir — git never sees it)
+
+# Large raw source rasters — not needed at runtime
+data/processed/dem_raw.tif
+data/processed/nlcd_impervious_raw.tif
+data/processed/nlcd_landcover_raw.tif
+
+# GeoTIFF outputs — stored in R2, not git
+outputs/spatial/*.tif
+outputs/validation/*.tif
+app/data/*.tif
+
+# Large training/test parquet files
+data/raw/hrrr/*.parquet
+data/raw/asos/*.parquet
+
+# HTTP cache
+cache/
+
+# Claude Code local settings
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.DS_Store

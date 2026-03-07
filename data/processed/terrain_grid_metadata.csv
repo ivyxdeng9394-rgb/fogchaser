@@ -1,0 +1,2 @@
+generated_at,w_tpi,w_imperv,w_moisture,w_aspect,offset_scale,tpi_radii_px,moisture_radius_px,dem_source,nlcd_year
+2026-03-03T22:41:13.355597,0.5,0.35,0.12,0.03,0.5,"1px(60%), 4px(40%)",2,3DEP 30m via py3dep,2021
