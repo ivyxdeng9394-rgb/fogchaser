@@ -84,6 +84,33 @@ function renderLightingTimes(lat, lon, valid_utc) {
   `).join("");
 }
 
+// ── Departure point ────────────────────────────────────────────────────────
+const DEPARTURE_KEY = "fogchaser_departure";
+
+function getDeparture() {
+  try {
+    const raw = localStorage.getItem(DEPARTURE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveDeparture(label, lat, lon) {
+  localStorage.setItem(DEPARTURE_KEY, JSON.stringify({ label, lat, lon }));
+}
+
+function renderDeparture() {
+  const dep = getDeparture();
+  const labelEl = document.getElementById("departure-label");
+  const navBtn  = document.getElementById("navigate-btn");
+  if (dep) {
+    labelEl.textContent = dep.label;
+    navBtn.disabled = false;
+  } else {
+    labelEl.textContent = "Not set";
+    navBtn.disabled = true;
+  }
+}
+
 function formatHour(valid_utc) {
   const d    = new Date(valid_utc);
   const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: ET });
@@ -672,6 +699,81 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("how-link").addEventListener("click", openHowModal);
   document.getElementById("how-close").addEventListener("click", closeHowModal);
   document.getElementById("how-backdrop").addEventListener("click", closeHowModal);
+
+  // ── Departure modal ──────────────────────────────────────────────────────
+  function openDepartureModal() {
+    const dep = getDeparture();
+    const input = document.getElementById("departure-input");
+    input.value = dep ? dep.label : "";
+    document.getElementById("departure-error").textContent = "";
+    document.getElementById("departure-modal").classList.add("open");
+    setTimeout(() => input.focus(), 320);
+  }
+
+  function closeDepartureModal() {
+    document.getElementById("departure-modal").classList.remove("open");
+  }
+
+  document.getElementById("departure-edit").addEventListener("click", openDepartureModal);
+  document.getElementById("departure-close").addEventListener("click", closeDepartureModal);
+  document.getElementById("departure-backdrop").addEventListener("click", closeDepartureModal);
+
+  document.getElementById("departure-save-btn").addEventListener("click", async () => {
+    const input = document.getElementById("departure-input");
+    const query = input.value.trim();
+    if (!query) {
+      document.getElementById("departure-error").textContent = "Please enter an address.";
+      return;
+    }
+    const saveBtn = document.getElementById("departure-save-btn");
+    saveBtn.textContent = "Searching…";
+    saveBtn.disabled = true;
+    document.getElementById("departure-error").textContent = "";
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&accept-language=en`;
+      const r = await fetch(url);
+      const results = await r.json();
+      if (!results.length) {
+        document.getElementById("departure-error").textContent = "Address not found. Try being more specific.";
+        return;
+      }
+      const { lat, lon } = results[0];
+      saveDeparture(query, parseFloat(lat), parseFloat(lon));
+      renderDeparture();
+      closeDepartureModal();
+    } catch {
+      document.getElementById("departure-error").textContent = "Search failed. Check your connection.";
+    } finally {
+      saveBtn.textContent = "Save";
+      saveBtn.disabled = false;
+    }
+  });
+
+  document.getElementById("departure-gps-btn").addEventListener("click", () => {
+    const btn = document.getElementById("departure-gps-btn");
+    btn.textContent = "Getting location…";
+    btn.disabled = true;
+    document.getElementById("departure-error").textContent = "";
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const name = await reverseGeocode(lat, lon);
+        const label = name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        saveDeparture(label, lat, lon);
+        renderDeparture();
+        closeDepartureModal();
+        btn.textContent = "Use my current location";
+        btn.disabled = false;
+      },
+      (err) => {
+        document.getElementById("departure-error").textContent =
+          err.code === 1 ? "Location access denied. Type an address instead." : "Couldn't get location. Try again.";
+        btn.textContent = "Use my current location";
+        btn.disabled = false;
+      },
+      { timeout: 10000 }
+    );
+  });
 
   (function () {
     const sheet = document.getElementById("how-sheet");
