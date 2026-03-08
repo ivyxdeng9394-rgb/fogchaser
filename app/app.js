@@ -48,6 +48,42 @@ function probLabel(prob) {
 
 const ET = "America/New_York";
 
+// Format a JS Date as "5:12a" in Eastern time
+function formatET(date) {
+  if (!date || isNaN(date.getTime())) return "—";
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: ET,
+  }).replace(/\s?(AM|PM)/i, m => m.trim()[0].toLowerCase());
+}
+
+// Returns photographer lighting rows for a lat/lon + JS Date
+function computeLightingTimes(lat, lon, date) {
+  const t = SunCalc.getTimes(date, lat, lon);
+  return [
+    { label: "Nautical dawn",    time: formatET(t.nauticalDawn) },
+    { label: "Civil dawn",       time: formatET(t.dawn) },
+    { label: "Sunrise",          time: formatET(t.sunrise) },
+    { label: "Golden hour ends", time: formatET(t.goldenHourEnd) },
+    { label: "Golden hour",      time: formatET(t.goldenHour) },
+    { label: "Sunset",           time: formatET(t.sunset) },
+    { label: "Civil dusk",       time: formatET(t.dusk) },
+  ];
+}
+
+// Render lighting rows into #lighting-times for the given lat/lon + forecast UTC string
+function renderLightingTimes(lat, lon, valid_utc) {
+  const rows = computeLightingTimes(lat, lon, new Date(valid_utc));
+  document.getElementById("lighting-times").innerHTML = rows.map(r => `
+    <div class="lighting-row">
+      <span class="lighting-label">${r.label}</span>
+      <span class="lighting-time">${r.time}</span>
+    </div>
+  `).join("");
+}
+
 function formatHour(valid_utc) {
   const d    = new Date(valid_utc);
   const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: ET });
