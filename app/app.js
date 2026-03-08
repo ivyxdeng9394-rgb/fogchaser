@@ -767,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveBtn.disabled = true;
     document.getElementById("departure-error").textContent = "";
     try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&accept-language=en`;
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&accept-language=en&countrycodes=us`;
       const r = await fetch(url);
       const results = await r.json();
       if (!results.length) {
