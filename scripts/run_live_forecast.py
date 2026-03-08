@@ -22,7 +22,7 @@ from scripts.fetch_live_asos import fetch_asos_latest
 from scripts.fetch_live_hrrr import fetch_hrrr_forecast_hour, DC_STATION_COORDS
 from scripts.run_inference_hour import infer_from_dataframes, CALIBRATOR_PATH, MODEL_PATH, STATION_COORDS
 from scripts.spatial_pipeline import run_spatial_pipeline
-from scripts.upload_to_r2 import upload_tif, get_r2_client
+from scripts.upload_to_r2 import upload_tif, upload_manifest, get_r2_client
 
 import pandas as pd
 
@@ -254,15 +254,14 @@ def main(override_run_time=None):
         print(f"ERROR: Only {successful} hours succeeded — marking run as failed.")
         sys.exit(1)
 
-    # Write manifest atomically — validate JSON, then rename over the live file
-    Path("app/data").mkdir(parents=True, exist_ok=True)
-    manifest_tmp = MANIFEST_PATH + ".tmp"
+    # Write manifest to a temp file, validate, then upload to R2
+    manifest_tmp = "/tmp/manifest.json"
     with open(manifest_tmp, "w") as f:
         json.dump(manifest, f, indent=2)
     with open(manifest_tmp) as f:
         json.load(f)  # raises if malformed
-    os.rename(manifest_tmp, MANIFEST_PATH)
-    print(f"Manifest written: {MANIFEST_PATH}  ({len(manifest['hours'])} hours)")
+    manifest_url = upload_manifest(manifest_tmp, client=r2_client)
+    print(f"Manifest uploaded: {manifest_url}  ({len(manifest['hours'])} hours)")
 
 
 if __name__ == "__main__":

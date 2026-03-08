@@ -18,14 +18,4 @@ echo "Running live forecast pipeline..."
 python3 scripts/run_live_forecast.py
 
 echo ""
-echo "Committing updated manifest..."
-git add app/data/manifest.json
-git commit -m "chore: refresh forecast $(date -u '+%Y-%m-%d %H:%M UTC')"
-git push
-
-echo ""
-echo "Deploying to Vercel..."
-vercel --prod
-
-echo ""
-echo "Done — forecast updated and deployed."
+echo "Done — forecast updated on Cloudflare R2."

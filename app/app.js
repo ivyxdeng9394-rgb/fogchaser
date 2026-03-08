@@ -1,4 +1,4 @@
-const DATA_DIR  = "data";
+const MANIFEST_URL = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json";
 const DC_CENTER = [38.95, -77.05];
 const DC_ZOOM   = 10;
 
@@ -279,7 +279,7 @@ sheet.addEventListener("touchend", e => {
 // ── Load manifest ─────────────────────────────────────────────────────────────
 async function init() {
   try {
-    const r = await fetch(`${DATA_DIR}/manifest.json?t=` + Date.now());
+    const r = await fetch(`${MANIFEST_URL}?t=` + Date.now());
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     manifest = await r.json();
   } catch (e) {

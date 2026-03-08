@@ -44,3 +44,21 @@ def upload_tif(local_path: str, bucket: str = None, client=None) -> str:
         ExtraArgs={"ContentType": "image/tiff"},
     )
     return f"{public_url_base}/{fname}"
+
+
+def upload_manifest(local_path: str, bucket: str = None, client=None) -> str:
+    """
+    Upload manifest.json to R2. Returns the public URL.
+    Uses no-cache so the app always gets the latest version.
+    """
+    if bucket is None:
+        bucket = os.environ["R2_BUCKET_NAME"]
+    public_url_base = os.environ["R2_PUBLIC_URL"].rstrip("/")
+    if client is None:
+        client = get_r2_client()
+
+    client.upload_file(
+        local_path, bucket, "manifest.json",
+        ExtraArgs={"ContentType": "application/json", "CacheControl": "no-cache, no-store"},
+    )
+    return f"{public_url_base}/manifest.json"
