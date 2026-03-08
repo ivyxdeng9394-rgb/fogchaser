@@ -51,9 +51,26 @@
     <button id="sheet-close" aria-label="Close">✕</button>
   </div>
   <div id="sheet-body">
-    <div id="prob-value">—</div>
-    <div id="prob-label">—</div>
-    <button id="why-toggle">Why this score</button>
+    <!-- PRIMARY CTA -->
+    <button id="plan-toggle" style="display:none">Plan this spot</button>
+    <div id="plan-section" aria-hidden="true">
+      <div id="plan-departure">
+        <span id="departure-from">From</span>
+        <span id="departure-label">Not set</span>
+        <button id="departure-edit" aria-label="Edit departure point">Edit</button>
+      </div>
+      <button id="navigate-btn" disabled>Navigate →</button>
+      <div id="lighting-times" aria-live="polite"></div>
+    </div>
+
+    <!-- SECONDARY: Score -->
+    <div id="score-row">
+      <span id="prob-value">—</span>
+      <span id="prob-label">—</span>
+    </div>
+
+    <!-- WHY THIS SCORE accordion -->
+    <button id="why-toggle" style="display:none">Why this score</button>
     <div id="why-factors"></div>
     <div id="approx-note"></div>
   </div>
@@ -116,6 +133,24 @@
     </div>
 
     <div id="how-footer">Built by a photographer, for photographers.</div>
+  </div>
+</div>
+
+<!-- Departure point modal -->
+<div id="departure-modal" aria-modal="true" role="dialog" aria-label="Set departure point">
+  <div id="departure-backdrop" aria-hidden="true"></div>
+  <div id="departure-dialog">
+    <div id="departure-header">
+      <span id="departure-title">Departure point</span>
+      <button id="departure-close" aria-label="Close">✕</button>
+    </div>
+    <div id="departure-body">
+      <p id="departure-hint">Where are you shooting from? Enter a neighborhood, address, or landmark.</p>
+      <input type="text" id="departure-input" placeholder="e.g. Silver Spring, MD" autocomplete="off" />
+      <div id="departure-error" aria-live="polite"></div>
+      <button id="departure-gps-btn">Use my current location</button>
+      <button id="departure-save-btn">Save</button>
+    </div>
   </div>
 </div>
 </body>
