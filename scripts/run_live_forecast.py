@@ -217,6 +217,20 @@ def main(override_run_time=None):
             label = {1: "Low", 2: "Moderate", 3: "High", 4: "Very High", 5: "Extreme"}[score]
             relative_risk = round(avg_prob / _BASELINE_FOG_RATE, 1)
 
+            # Aggregate conditions for the "Why this score" explainer
+            def _mean(df, col):
+                return round(float(df[col].mean()), 1) if col in df.columns else None
+
+            merged_for_cond = asos_hour.merge(hrrr_df[["station","hpbl_m","hgt_cldbase_m","rh2m_pct"]],
+                                              on="station", how="inner")
+            conditions = {
+                "t_td_spread_f": _mean(merged_for_cond, "t_td_spread_lag"),
+                "wind_speed_mph": _mean(merged_for_cond, "wind_speed_mph_lag"),
+                "hpbl_m":        _mean(merged_for_cond, "hpbl_m"),
+                "hgt_cldbase_m": _mean(merged_for_cond, "hgt_cldbase_m"),
+                "rh_pct":        _mean(merged_for_cond, "rh2m_pct"),
+            }
+
             manifest["hours"].append({
                 "fxx":           fxx,
                 "valid_utc":     valid_dt.strftime("%Y-%m-%dT%H:00:00Z"),
@@ -226,6 +240,7 @@ def main(override_run_time=None):
                 "avg_prob":      round(avg_prob, 3),
                 "url":           tif_url,
                 "approx_asos":   fxx >= 2,
+                "conditions":    conditions,
             })
             print(f"avg={avg_prob:.3f}  score={score}/5 [{label}]  {relative_risk}× baseline  → {Path(tif_url).name}")
 
