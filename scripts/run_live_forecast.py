@@ -52,7 +52,7 @@ def read_geotiff_mean(tif_path: str) -> float:
     with rasterio.open(tif_path) as src:
         arr = src.read(1).astype(float)
         nodata = src.nodata or -9999.0
-    valid = arr[(arr != nodata) & (arr > -9990)]
+    valid = arr[(arr >= 0.0) & (arr <= 1.0)]
     return float(np.mean(valid)) if len(valid) > 0 else 0.0
 
 

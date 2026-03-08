@@ -307,17 +307,14 @@ async function init() {
     return;
   }
 
-  // Summary bar: average across remaining future forecast hours
+  // Summary bar: driven by peak hour (not average) so high-fog windows aren't buried
   const forBadge  = manifest.hours;
-  const avgOvn    = forBadge.reduce((s, h) => s + h.avg_prob, 0) / forBadge.length;
-  const ovnScore  = fogScore(avgOvn);
-  const ovnLabel  = fogLabel(avgOvn);
-  const riskStr   = relativeRisk(avgOvn);
-
-  // Find peak hour for best-window hint
   const peakHour   = forBadge.reduce((b, h) => h.avg_prob > b.avg_prob ? h : b, forBadge[0]);
   const peakHrComp = cellHourLabel(peakHour.valid_utc);
   const peakDate   = dateLabel(peakHour.valid_utc);
+  const ovnScore  = fogScore(peakHour.avg_prob);
+  const ovnLabel  = fogLabel(peakHour.avg_prob);
+  const riskStr   = relativeRisk(peakHour.avg_prob);
 
   const scoreEl   = document.getElementById("tonight-score");
   const textEl    = document.getElementById("tonight-text");
@@ -422,7 +419,7 @@ async function showHour(idx) {
     opacity: 1.0,
     pixelValuesToColorFn: (values) => {
       const v = values[0];
-      if (v == null || v < -9990) return null;
+      if (v == null || v < 0) return null;
       return fogColor(v);
     },
     resolution: 512,

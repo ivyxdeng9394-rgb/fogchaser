@@ -195,5 +195,13 @@ def run_spatial_pipeline(station_probs, station_lats, station_lons,
             )
     Path(tmp_path).unlink()
 
+    # Bilinear resampling at reprojection borders interpolates between valid
+    # pixels and nodata, producing garbage values (e.g. -8000) that aren't
+    # exactly -9999. Clamp any out-of-range values to nodata.
+    with rasterio.open(out_path, "r+") as dst:
+        arr = dst.read(1)
+        arr[(arr < 0.0) | (arr > 1.0)] = -9999.0
+        dst.write(arr, 1)
+
     print(f"  Written: {out_path}")
     return out_path
