@@ -111,6 +111,20 @@ function renderDeparture() {
   }
 }
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function buildNavURL(destLat, destLon) {
+  const dep = getDeparture();
+  if (!dep) return null;
+  if (isIOS()) {
+    return `maps://?saddr=${dep.lat},${dep.lon}&daddr=${destLat},${destLon}&dirflg=d`;
+  }
+  return `https://www.google.com/maps/dir/?api=1&origin=${dep.lat},${dep.lon}&destination=${destLat},${destLon}&travelmode=driving`;
+}
+
 function formatHour(valid_utc) {
   const d    = new Date(valid_utc);
   const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: ET });
@@ -594,6 +608,7 @@ async function loadGeoRaster(url) {
 let clickMarker = null;
 
 async function onMapClick(e) {
+  currentClickLatLng = e.latlng;
   const idx = parseInt(document.getElementById("hour-slider").value);
   const h   = manifest.hours[idx];
   if (!h.url) return;
@@ -773,6 +788,17 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       { timeout: 10000 }
     );
+  });
+
+  document.getElementById("navigate-btn").addEventListener("click", () => {
+    if (!currentClickLatLng) return;
+    const dep = getDeparture();
+    if (!dep) {
+      openDepartureModal();
+      return;
+    }
+    const url = buildNavURL(currentClickLatLng.lat, currentClickLatLng.lng);
+    if (url) window.open(url, "_blank", "noopener");
   });
 
   (function () {
