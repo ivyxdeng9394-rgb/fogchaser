@@ -119,7 +119,7 @@ function isIOS() {
 function buildNavURL(destLat, destLon, dep = getDeparture()) {
   if (!dep) return null;
   if (isIOS()) {
-    return `maps://?saddr=${dep.lat},${dep.lon}&daddr=${destLat},${destLon}&dirflg=d`;
+    return `https://maps.apple.com/?saddr=${dep.lat},${dep.lon}&daddr=${destLat},${destLon}&dirflg=d`;
   }
   return `https://www.google.com/maps/dir/?api=1&origin=${dep.lat},${dep.lon}&destination=${destLat},${destLon}&travelmode=driving`;
 }
