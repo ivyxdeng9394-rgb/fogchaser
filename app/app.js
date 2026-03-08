@@ -437,23 +437,13 @@ async function showHour(idx) {
   }
 
   const gr = await loadGeoRaster(h.url);
-
-  const newLayer = new GeoRasterLayer({
-    georaster: gr,
-    opacity: 1.0,
-    pixelValuesToColorFn: (values) => {
-      const v = values[0];
-      if (v == null || v < 0) return null;
-      return fogColor(v);
-    },
-    resolution: 512,
-  });
+  const newLayer = georasterToOverlay(gr);
   newLayer.addTo(map);
 
   // Cross-fade: new layer in, old layer out simultaneously
-  const newEl = newLayer._container;
+  const newEl = newLayer._image;
   const oldLayer = currentLayer;
-  const oldEl = oldLayer?._container;
+  const oldEl = oldLayer?._image;
 
   if (newEl) {
     newEl.style.opacity = "0";
@@ -469,6 +459,35 @@ async function showHour(idx) {
   }
 
   currentLayer = newLayer;
+}
+
+// Render a georaster to a single L.imageOverlay — eliminates tile seams entirely
+function georasterToOverlay(gr) {
+  const w = gr.width, h = gr.height;
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(w, h);
+  const band = gr.values[0];
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const v = band[y][x];
+      const color = fogColor(v);
+      const i = (y * w + x) * 4;
+      if (!color) { img.data[i + 3] = 0; continue; }
+      // Parse "rgba(r,g,b,a)" string
+      const m = color.match(/[\d.]+/g);
+      img.data[i]     = +m[0];
+      img.data[i + 1] = +m[1];
+      img.data[i + 2] = +m[2];
+      img.data[i + 3] = Math.round(+m[3] * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const url = canvas.toDataURL();
+  const bounds = [[gr.ymin, gr.xmin], [gr.ymax, gr.xmax]];
+  return L.imageOverlay(url, bounds, { opacity: 1.0, interactive: false });
 }
 
 async function loadGeoRaster(url) {

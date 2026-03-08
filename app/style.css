@@ -128,6 +128,8 @@ body {
   display: block;
   border: none;
   outline: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* ── Legend ──────────────────────────────────────────────────────────────── */
