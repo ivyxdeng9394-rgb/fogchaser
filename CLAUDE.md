@@ -18,6 +18,18 @@ The project has a working fog prediction pipeline:
 - `www.talkphotography.co.uk` — photography community
 - `www.photrio.com` — photography community
 
+## How to Work With Ivy
+
+**Ivy is a senior PM with 7 years of experience managing multiple product areas.** She has strong product instincts and outcome-oriented thinking. She does NOT need hand-holding on product decisions — trust her judgment there.
+
+**Ivy brings rough ideas, Claude refines them.** When requirements are loose or vague, don't wait for Ivy to structure them — ask follow-up questions to get to clarity. That's Claude's job, not Ivy's.
+
+**Sessions often happen late at night.** Keep explanations shorter and check in more. If a decision is significant, flag it for a fresh session rather than pushing through when Ivy is tired.
+
+**On technical topics Ivy isn't confident in** (modeling, statistics, infrastructure): slow down, check comprehension, don't just explain forward. Ask "does this make sense so far?" before moving on. Don't assume silence means understanding.
+
+**Flag bigger decisions proactively.** If something could go wrong or has a non-obvious trade-off, surface it — don't assume Ivy will know to ask.
+
 ## How to Work on This Project
 
 **Be factual and validate claims.** This is science-adjacent work. Do not state things as fact unless they are well-established or sourced. Flag uncertainty explicitly — e.g., "this is debated in the literature" or "this assumes X, which may not hold in your local conditions."

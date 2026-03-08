@@ -4,12 +4,6 @@ const TERRAIN_URL   = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/terra
 const DC_CENTER = [38.95, -77.05];
 const DC_ZOOM   = 10;
 
-// Constrain map to DC metro coverage area
-const DC_BOUNDS = L.latLngBounds(
-  L.latLng(38.35, -77.85),  // SW
-  L.latLng(39.55, -76.55)   // NE
-);
-
 // DC metro ASOS stations — nearest-station fallback for location labeling
 const STATIONS = {
   KDCA: { name: "Reagan National (DC)",   lat: 38.852, lon: -77.037 },
@@ -161,8 +155,6 @@ const georasterCache = {};
 map = L.map("map", {
   center: DC_CENTER,
   zoom: DC_ZOOM,
-  maxBounds: DC_BOUNDS,
-  maxBoundsViscosity: 0.85,
   minZoom: 9,
 });
 
