@@ -351,6 +351,12 @@ async function init() {
   slider.max   = manifest.hours.length - 1;
   slider.value = 0;
 
+  function updateSliderFill() {
+    const pct = slider.max > 0 ? (slider.value / slider.max) * 100 : 0;
+    slider.style.setProperty("--slider-fill", `${pct}%`);
+  }
+  updateSliderFill();
+
   buildExposureStrip();
   positionSheet(); // re-measure now that exposure strip cells are rendered
   await showHour(0);
@@ -362,8 +368,14 @@ async function init() {
 
   slider.addEventListener("input", () => {
     const idx = parseInt(slider.value);
+    updateSliderFill();
     showHour(idx);
     updateActiveCell(idx);
+    // Preload neighbours so next step cross-fades without a network wait
+    [idx - 1, idx + 1].forEach(i => {
+      if (i >= 0 && i < manifest.hours.length && manifest.hours[i].url)
+        loadGeoRaster(manifest.hours[i].url).catch(() => {});
+    });
   });
 
   map.on("click", onMapClick);
@@ -424,9 +436,8 @@ async function showHour(idx) {
   }
 
   const gr = await loadGeoRaster(h.url);
-  if (currentLayer) map.removeLayer(currentLayer);
 
-  currentLayer = new GeoRasterLayer({
+  const newLayer = new GeoRasterLayer({
     georaster: gr,
     opacity: 1.0,
     pixelValuesToColorFn: (values) => {
@@ -436,7 +447,27 @@ async function showHour(idx) {
     },
     resolution: 512,
   });
-  currentLayer.addTo(map);
+  newLayer.addTo(map);
+
+  // Cross-fade: new layer in, old layer out simultaneously
+  const newEl = newLayer._container;
+  const oldLayer = currentLayer;
+  const oldEl = oldLayer?._container;
+
+  if (newEl) {
+    newEl.style.opacity = "0";
+    newEl.style.transition = "opacity 0.28s ease";
+    requestAnimationFrame(() => { newEl.style.opacity = "1"; });
+  }
+  if (oldEl) {
+    oldEl.style.transition = "opacity 0.28s ease";
+    oldEl.style.opacity = "0";
+    setTimeout(() => { if (oldLayer) map.removeLayer(oldLayer); }, 280);
+  } else if (oldLayer) {
+    map.removeLayer(oldLayer);
+  }
+
+  currentLayer = newLayer;
 }
 
 async function loadGeoRaster(url) {
