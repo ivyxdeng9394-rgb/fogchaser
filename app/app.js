@@ -379,8 +379,11 @@ document.getElementById("why-toggle").addEventListener("click", () => {
 });
 
 // Drag gesture on bottom sheet (mobile swipe up/down)
+// Only triggered from sheet-peek (the header strip) — not from the scrollable body,
+// so that scrolling sheet content doesn't accidentally dismiss the sheet.
 let dragStartY = null, dragStartOpen = false;
 sheet.addEventListener("touchstart", e => {
+  if (e.target.closest("#sheet-body")) { dragStartY = null; return; }
   dragStartY    = e.touches[0].clientY;
   dragStartOpen = sheet.classList.contains("open");
 }, { passive: true });
