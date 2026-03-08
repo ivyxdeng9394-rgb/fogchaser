@@ -566,4 +566,35 @@ async function onMapClick(e) {
   }
 }
 
+// ── How it works modal ────────────────────────────────────────────────────────
+function openHowModal() {
+  document.getElementById("how-modal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeHowModal() {
+  document.getElementById("how-modal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("how-link").addEventListener("click", openHowModal);
+document.getElementById("how-close").addEventListener("click", closeHowModal);
+document.getElementById("how-backdrop").addEventListener("click", closeHowModal);
+
+(function () {
+  const sheet = document.getElementById("how-sheet");
+  let startY = null;
+
+  sheet.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  sheet.addEventListener("touchend", e => {
+    if (startY === null) return;
+    const delta = e.changedTouches[0].clientY - startY;
+    if (delta > 60) closeHowModal();
+    startY = null;
+  }, { passive: true });
+})();
+
 init();
