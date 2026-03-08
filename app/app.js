@@ -149,6 +149,7 @@ function terrainBullet(offset) {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let map, currentLayer, manifest;
+let currentClickLatLng = null; // lat/lon of last map tap — used by navigate button
 const georasterCache = {};
 
 // ── Init map ──────────────────────────────────────────────────────────────────
@@ -232,30 +233,77 @@ function panMapForSheet(latlng) {
 function resetExplorer() {
   closeSheet();
   if (clickMarker) { map.removeLayer(clickMarker); clickMarker = null; }
+  currentClickLatLng = null;
   document.getElementById("sheet-location").textContent = "Tap the map to explore";
   document.getElementById("sheet-score-label").textContent = "";
   document.getElementById("prob-value").textContent = "—";
   document.getElementById("prob-label").textContent = "—";
+  // Reset why section
   document.getElementById("why-factors").classList.remove("visible");
   document.getElementById("approx-note").classList.remove("visible", "visible-ready");
-  const toggleEl = document.getElementById("why-toggle");
-  toggleEl.style.display = "none";
-  toggleEl.classList.remove("expanded");
+  const whyToggleEl = document.getElementById("why-toggle");
+  whyToggleEl.style.display = "none";
+  whyToggleEl.classList.remove("expanded");
+  // Reset plan section
+  document.getElementById("plan-toggle").style.display = "none";
+  closePlanSection();
+  document.getElementById("lighting-times").innerHTML = "";
 }
 
 document.getElementById("sheet-close").addEventListener("click", resetExplorer);
 document.getElementById("header-title").addEventListener("click", resetExplorer);
 
-document.getElementById("why-toggle").addEventListener("click", () => {
+// ── Accordion: Plan this spot + Why this score ─────────────────────────────
+// Only one section open at a time.
+
+function openPlanSection() {
+  document.getElementById("plan-section").classList.add("visible");
+  document.getElementById("plan-section").removeAttribute("aria-hidden");
+  document.getElementById("plan-toggle").classList.add("expanded");
+  // Close why section
+  document.getElementById("why-factors").classList.remove("visible");
+  document.getElementById("approx-note").classList.remove("visible");
+  document.getElementById("why-toggle").classList.remove("expanded");
+}
+
+function closePlanSection() {
+  document.getElementById("plan-section").classList.remove("visible");
+  document.getElementById("plan-section").setAttribute("aria-hidden", "true");
+  document.getElementById("plan-toggle").classList.remove("expanded");
+}
+
+function openWhySection() {
   const factorsEl = document.getElementById("why-factors");
   const approxEl  = document.getElementById("approx-note");
-  const toggleEl  = document.getElementById("why-toggle");
-  const expanding = !factorsEl.classList.contains("visible");
-  factorsEl.classList.toggle("visible", expanding);
+  factorsEl.classList.add("visible");
+  document.getElementById("why-toggle").classList.add("expanded");
   if (approxEl.classList.contains("visible-ready")) {
-    approxEl.classList.toggle("visible", expanding);
+    approxEl.classList.add("visible");
   }
-  toggleEl.classList.toggle("expanded", expanding);
+  // Close plan section
+  closePlanSection();
+}
+
+function closeWhySection() {
+  document.getElementById("why-factors").classList.remove("visible");
+  document.getElementById("approx-note").classList.remove("visible");
+  document.getElementById("why-toggle").classList.remove("expanded");
+}
+
+document.getElementById("plan-toggle").addEventListener("click", () => {
+  if (document.getElementById("plan-section").classList.contains("visible")) {
+    closePlanSection();
+  } else {
+    openPlanSection();
+  }
+});
+
+document.getElementById("why-toggle").addEventListener("click", () => {
+  if (document.getElementById("why-factors").classList.contains("visible")) {
+    closeWhySection();
+  } else {
+    openWhySection();
+  }
 });
 
 // Drag gesture on bottom sheet (mobile swipe up/down)
