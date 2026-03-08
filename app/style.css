@@ -240,7 +240,7 @@ body {
   position: fixed;
   left: 0;
   right: 0;
-  /* bottom is set via JS after exposure strip is built */
+  /* bottom is set dynamically by positionSheet() in JS */
   background: var(--surface);
   border: 1px solid var(--border2);
   border-radius: 14px 14px 0 0;
