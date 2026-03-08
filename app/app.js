@@ -477,6 +477,10 @@ async function init() {
     updateSliderFill();
     showHour(idx);
     updateActiveCell(idx);
+    // Refresh lighting times if plan section is open and a location is selected
+    if (currentClickLatLng && document.getElementById("plan-section").classList.contains("visible")) {
+      renderLightingTimes(currentClickLatLng.lat, currentClickLatLng.lng, manifest.hours[idx].valid_utc);
+    }
     // Preload neighbours so next step cross-fades without a network wait
     [idx - 1, idx + 1].forEach(i => {
       if (i >= 0 && i < manifest.hours.length && manifest.hours[i].url)
@@ -690,6 +694,11 @@ async function onMapClick(e) {
     }
     toggleEl.style.display = "block";
   }
+
+  // Show plan toggle and populate planning section
+  document.getElementById("plan-toggle").style.display = "block";
+  renderDeparture();
+  renderLightingTimes(e.latlng.lat, e.latlng.lng, h.valid_utc);
 }
 
 // ── How it works modal ────────────────────────────────────────────────────────
