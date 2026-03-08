@@ -95,6 +95,21 @@ body {
   line-height: 1.4;
 }
 
+#how-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 6px auto 0;
+  color: var(--text-muted);
+  font: 400 11px/1.4 var(--font);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+#how-link:hover { opacity: 1; }
+
 /* Score color states */
 #tonight-score.go   { color: var(--green); }
 #tonight-score.warn { color: var(--amber); }
