@@ -349,20 +349,159 @@ body {
   padding-top: 14px;
 }
 
+/* Score row — secondary display below Plan CTA */
+#score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--border);
+}
+
 #prob-value {
-  font-size: 30px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--accent);
-  line-height: 1;
-  margin-bottom: 6px;
-  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 #prob-label {
   font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
+}
+
+/* Plan this spot — primary CTA */
+#plan-toggle {
+  width: 100%;
+  padding: 13px 16px;
+  margin: 14px 0 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font: 500 15px/1 'DM Sans', system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+#plan-toggle::after {
+  content: '›';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+#plan-toggle.expanded {
+  border-color: var(--accent);
+}
+
+#plan-toggle.expanded::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+#plan-toggle:hover {
+  border-color: var(--border2);
+  background: #1a1916;
+}
+
+/* Plan section — slides open under the toggle */
+#plan-section {
+  display: none;
+  flex-direction: column;
+  padding: 12px 0 4px;
+}
+
+#plan-section.visible { display: flex; }
+
+/* Departure row */
+#plan-departure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 10px;
+  font-size: 13px;
+}
+
+#departure-from {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+#departure-label {
+  flex: 1;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#departure-edit {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: 400 13px 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+  padding: 4px 0 4px 6px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Navigate button — primary action, full-width */
+#navigate-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #0a1a22;
+  font: 600 15px/1 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
   margin-bottom: 14px;
+}
+
+#navigate-btn:hover { opacity: 0.88; }
+#navigate-btn:active { transform: scale(0.98); }
+
+#navigate-btn:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+/* Lighting times */
+#lighting-times {
+  display: flex;
+  flex-direction: column;
+}
+
+.lighting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.lighting-row:last-child { border-bottom: none; }
+
+.lighting-label { color: var(--text-muted); }
+
+.lighting-time {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 
 /* Why toggle */
