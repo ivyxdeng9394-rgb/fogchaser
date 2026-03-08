@@ -1,14 +1,16 @@
-# Large data files — not needed for frontend
-data/
-models/
-outputs/
-tests/
-scripts/
-docs/
+# Root-level large data dirs — not needed for frontend
+/data/
+/models/
+/outputs/
+/tests/
+/scripts/
+/docs/
 *.parquet
 *.pkl
 *.grib2
-*.tif
+
+# app/data/*.tif excluded — GeoTIFFs are served from R2, not Vercel
+app/data/*.tif
 
 # Credentials and local config
 .env
