@@ -509,7 +509,7 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 2001;
 }
 #how-modal.open { display: block; }
 
