@@ -167,10 +167,14 @@ def run_spatial_pipeline(station_probs, station_lats, station_lons,
         dst.write(out_arr, 1)
 
     # Reproject to EPSG:4326 (WGS84) so geoblaze.identify works with lat/lon
+    # Clip to DC metro bounds — must match DC_BOUNDS in app.js exactly
+    DC_LEFT, DC_BOTTOM, DC_RIGHT, DC_TOP = -77.85, 38.35, -76.55, 39.55
+
     dst_crs = rasterio.crs.CRS.from_epsg(4326)
     with rasterio.open(tmp_path) as src:
         transform_4326, width_4326, height_4326 = rasterio.warp.calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds
+            src.crs, dst_crs, src.width, src.height,
+            left=DC_LEFT, bottom=DC_BOTTOM, right=DC_RIGHT, top=DC_TOP
         )
         profile_4326 = src.profile.copy()
         profile_4326.update(

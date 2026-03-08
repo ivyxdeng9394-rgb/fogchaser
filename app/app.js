@@ -297,7 +297,17 @@ async function init() {
   document.getElementById("updated-label").textContent =
     timeAgo(manifest.generated_utc);
 
-  // Summary bar: average across all forecast hours (next 12h ET)
+  // Only show hours that haven't passed yet
+  const now = Date.now();
+  manifest.hours = manifest.hours.filter(h => new Date(h.valid_utc).getTime() > now);
+
+  if (!manifest.hours.length) {
+    document.getElementById("loading").textContent = "Forecast is stale — run fogrefresh to update.";
+    document.getElementById("loading").style.color = "#c47070";
+    return;
+  }
+
+  // Summary bar: average across remaining future forecast hours
   const forBadge  = manifest.hours;
   const avgOvn    = forBadge.reduce((s, h) => s + h.avg_prob, 0) / forBadge.length;
   const ovnScore  = fogScore(avgOvn);
