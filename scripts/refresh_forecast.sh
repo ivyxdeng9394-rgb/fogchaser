@@ -24,4 +24,8 @@ git commit -m "chore: refresh forecast $(date -u '+%Y-%m-%d %H:%M UTC')"
 git push
 
 echo ""
-echo "Done — Vercel will redeploy automatically."
+echo "Deploying to Vercel..."
+vercel --prod
+
+echo ""
+echo "Done — forecast updated and deployed."
