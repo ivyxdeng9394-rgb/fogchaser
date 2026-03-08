@@ -39,7 +39,10 @@
 
 <div id="time-bar">
   <label id="hour-label">—</label>
-  <input type="range" id="hour-slider" min="0" max="0" value="0" />
+  <div id="scrubber-wrap">
+    <input type="range" id="hour-slider" min="0" max="0" value="0" />
+  </div>
+  <div id="hour-ticks"></div>
 </div>
 
 <!-- Bottom sheet: slides up above time bar on map tap -->

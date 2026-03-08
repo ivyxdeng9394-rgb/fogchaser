@@ -456,6 +456,14 @@ async function init() {
   slider.max   = manifest.hours.length - 1;
   slider.value = 0;
 
+  // Build tick marks (one per hour)
+  const ticksEl = document.getElementById("hour-ticks");
+  ticksEl.innerHTML = "";
+  manifest.hours.forEach(() => {
+    const s = document.createElement("span");
+    ticksEl.appendChild(s);
+  });
+
   function updateSliderFill() {
     const pct = slider.max > 0 ? (slider.value / slider.max) * 100 : 0;
     slider.style.setProperty("--slider-fill", `${pct}%`);
