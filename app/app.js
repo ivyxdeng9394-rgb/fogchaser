@@ -462,8 +462,7 @@ async function init() {
   }
   updateSliderFill();
 
-  buildExposureStrip();
-  positionSheet(); // re-measure now that exposure strip cells are rendered
+  positionSheet();
   await showHour(0);
 
   document.getElementById("loading").style.display = "none";
@@ -475,7 +474,6 @@ async function init() {
     const idx = parseInt(slider.value);
     updateSliderFill();
     showHour(idx);
-    updateActiveCell(idx);
     // Refresh lighting times if plan section is open and a location is selected
     if (currentClickLatLng && document.getElementById("plan-section").classList.contains("visible")) {
       renderLightingTimes(currentClickLatLng.lat, currentClickLatLng.lng, manifest.hours[idx].valid_utc);
@@ -490,45 +488,6 @@ async function init() {
   map.on("click", onMapClick);
 }
 
-// ── Exposure strip ────────────────────────────────────────────────────────────
-function buildExposureStrip() {
-  const el = document.getElementById("exposure-strip");
-  el.innerHTML = "";
-
-  manifest.hours.forEach((h, i) => {
-    const cell = document.createElement("div");
-    cell.className = "exposure-cell";
-
-    const p = h.avg_prob || 0;
-    if (p >= 0.17) {
-      const t = Math.min(1, (p - 0.17) / (0.252 - 0.17));
-      cell.style.background = `rgba(40,105,198,${0.52 + t * 0.32})`;
-      cell.classList.add("fog-hi");
-    } else if (p >= 0.08) {
-      const t = (p - 0.08) / (0.17 - 0.08);
-      cell.style.background = `rgba(65,140,215,${0.14 + t * 0.36})`;
-    } else if (p >= 0.03) {
-      cell.style.background = "rgba(85,150,210,0.09)";
-    }
-
-    cell.innerHTML = `<span class="cell-hour">${cellHourLabel(h.valid_utc)}</span>`;
-    cell.addEventListener("click", () => {
-      document.getElementById("hour-slider").value = i;
-      showHour(i);
-      updateActiveCell(i);
-    });
-    el.appendChild(cell);
-  });
-
-  updateActiveCell(0);
-}
-
-function updateActiveCell(idx) {
-  document.querySelectorAll(".exposure-cell").forEach((c, i) =>
-    c.classList.toggle("active", i === idx)
-  );
-}
-
 // ── Show forecast hour ────────────────────────────────────────────────────────
 async function showHour(idx) {
   const h = manifest.hours[idx];
@@ -536,8 +495,6 @@ async function showHour(idx) {
 
   document.getElementById("hour-label").textContent =
     `${time}  (${rel})  ·  ${h.label || "—"}`;
-
-  updateActiveCell(idx);
 
   if (!h.url) {
     if (currentLayer) { map.removeLayer(currentLayer); currentLayer = null; }

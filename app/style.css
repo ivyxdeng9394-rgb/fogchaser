@@ -186,46 +186,6 @@ body {
   margin-bottom: 7px;
 }
 
-#exposure-strip {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 6px;
-}
-
-.exposure-cell {
-  flex: 1;
-  height: 44px;
-  min-width: 0;
-  border-radius: 3px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: transform 0.1s ease, border-color 0.12s ease;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 6px;
-  background: var(--surface2);
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.exposure-cell:hover { border-color: var(--border2); }
-
-.exposure-cell.active {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.cell-hour {
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  color: rgba(222, 218, 210, 0.30);
-  line-height: 1;
-  user-select: none;
-}
-
-.exposure-cell.active .cell-hour,
-.exposure-cell.fog-hi .cell-hour { color: rgba(222, 218, 210, 0.75); }
 
 #hour-slider {
   -webkit-appearance: none;
