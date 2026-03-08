@@ -145,9 +145,11 @@
       <button id="departure-close" aria-label="Close">✕</button>
     </div>
     <div id="departure-body">
-      <p id="departure-hint">Where are you shooting from? Enter a neighborhood, address, or landmark.</p>
-      <input type="text" id="departure-input" placeholder="e.g. Silver Spring, MD" autocomplete="off" />
-      <ul id="departure-suggestions" role="listbox" aria-label="Address suggestions"></ul>
+      <p id="departure-hint">Enter your zip code to set your departure area.</p>
+      <div id="departure-input-wrap">
+        <input type="text" id="departure-input" placeholder="e.g. 20910" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="10" />
+        <button id="departure-clear" type="button" aria-label="Clear zip code">✕</button>
+      </div>
       <div id="departure-error" aria-live="polite"></div>
       <button id="departure-gps-btn">Use my current location</button>
       <button id="departure-save-btn">Save</button>
