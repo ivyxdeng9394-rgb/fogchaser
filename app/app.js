@@ -34,8 +34,6 @@ function fogColor(prob) {
   return                    "rgba(0,38,152,0.82)";
 }
 
-const BASELINE = 0.054;
-
 function fogScore(prob) {
   if (!prob || prob < 0.08) return 1;
   if (prob < 0.13) return 2;
@@ -48,10 +46,6 @@ function fogLabel(prob) {
   return ["", "Low", "Moderate", "High", "Very High", "Extreme"][fogScore(prob)];
 }
 
-function relativeRisk(prob) {
-  if (!prob) return "1.0";
-  return (prob / BASELINE).toFixed(1);
-}
 
 function probLabel(prob) {
   if (!prob || prob < 0.03) return "1/5 — Low";
@@ -324,8 +318,6 @@ async function init() {
   const peakDate   = dateLabel(peakHour.valid_utc);
   const ovnScore  = fogScore(peakHour.avg_prob);
   const ovnLabel  = fogLabel(peakHour.avg_prob);
-  const riskStr   = relativeRisk(peakHour.avg_prob);
-
   const scoreEl   = document.getElementById("tonight-score");
   const textEl    = document.getElementById("tonight-text");
 
@@ -341,7 +333,7 @@ async function init() {
     : `${firstDate}, ${firstComp} – ${lastDate}, ${lastComp} ET`;
 
   if (ovnScore >= 3) {
-    textEl.textContent = `Peak around ${peakDate}, ${peakHrComp} ET · ${riskStr}× above normal · Worth setting an alarm`;
+    textEl.textContent = `Peak around ${peakDate}, ${peakHrComp} ET · Worth setting an alarm`;
   } else if (ovnScore === 2) {
     textEl.textContent = `${window12} · Low signal, patchy fog possible`;
   } else {
@@ -563,8 +555,8 @@ async function onMapClick(e) {
   document.getElementById("sheet-score-label").textContent = `${fogScore(prob)}/5`;
   document.getElementById("prob-value").textContent =
     `${fogScore(prob)}/5 — ${fogLabel(prob)}`;
-  document.getElementById("prob-label").textContent =
-    `${Math.round(prob * 100)}% probability  ·  ${relativeRisk(prob)}× above normal`;
+  const goLabel = ["", "Stay home", "Probably not worth it", "Marginal — your call", "Worth the alarm", "Worth the alarm"][fogScore(prob)];
+  document.getElementById("prob-label").textContent = goLabel;
 
   // Contributing factors — atmospheric (regional) + terrain (location-specific)
   const bullets = conditionBullets(h.conditions);
