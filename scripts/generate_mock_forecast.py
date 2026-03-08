@@ -40,11 +40,11 @@ urban_suppress = np.exp(-((lats - 38.9)**2 / 0.004 + (lons + 77.0)**2 / 0.004)) 
 # Northern Virginia rolling terrain: moderate
 nova_fog = np.exp(-((lats - 38.75)**2 / 0.02 + (lons + 77.3)**2 / 0.04)) * 0.14
 
-# Base field + noise
-base = river_fog + valley_fog + nova_fog - urban_suppress
-base = np.clip(base, 0.008, 0.252)
-base += rng.normal(0, 0.008, base.shape)
-base = np.clip(base, 0.008, 0.252).astype("float32")
+# Base field + noise — raise floor so mock data shows interesting fog across the grid
+base = 0.06 + river_fog + valley_fog + nova_fog - urban_suppress
+base = np.clip(base, 0.02, 0.252)
+base += rng.normal(0, 0.01, base.shape)
+base = np.clip(base, 0.02, 0.252).astype("float32")
 
 profile = {
     "driver": "GTiff",

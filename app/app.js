@@ -1,4 +1,5 @@
-const MANIFEST_URL  = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json";
+const LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const MANIFEST_URL  = LOCAL ? "data/manifest.json" : "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json";
 const TERRAIN_URL   = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/terrain_offset.tif";
 const DC_CENTER = [38.95, -77.05];
 const DC_ZOOM   = 10;
