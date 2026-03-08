@@ -116,8 +116,7 @@ function isIOS() {
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
-function buildNavURL(destLat, destLon) {
-  const dep = getDeparture();
+function buildNavURL(destLat, destLon, dep = getDeparture()) {
   if (!dep) return null;
   if (isIOS()) {
     return `maps://?saddr=${dep.lat},${dep.lon}&daddr=${destLat},${destLon}&dirflg=d`;
@@ -806,7 +805,7 @@ document.addEventListener("DOMContentLoaded", () => {
       openDepartureModal();
       return;
     }
-    const url = buildNavURL(currentClickLatLng.lat, currentClickLatLng.lng);
+    const url = buildNavURL(currentClickLatLng.lat, currentClickLatLng.lng, dep);
     if (url) window.open(url, "_blank", "noopener");
   });
 
