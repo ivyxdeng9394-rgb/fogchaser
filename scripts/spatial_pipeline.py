@@ -74,6 +74,7 @@ def idw_logodds(station_probs, station_lats, station_lons,
 
 
 import rasterio
+import rasterio.warp
 import pyproj
 from pathlib import Path
 from datetime import datetime
@@ -159,9 +160,40 @@ def run_spatial_pipeline(station_probs, station_lats, station_lons,
     out_arr = final_prob.astype(np.float32)
     out_arr[low_conf] = -9998.0   # distinct nodata for low-confidence cells
 
+    # Write temporary GeoTIFF in source CRS (EPSG:5070)
+    tmp_path = out_path + ".tmp.tif"
     profile.update(dtype="float32", count=1, nodata=-9999.0)
-    with rasterio.open(out_path, "w", **profile) as dst:
+    with rasterio.open(tmp_path, "w", **profile) as dst:
         dst.write(out_arr, 1)
+
+    # Reproject to EPSG:4326 (WGS84) so geoblaze.identify works with lat/lon
+    dst_crs = rasterio.crs.CRS.from_epsg(4326)
+    with rasterio.open(tmp_path) as src:
+        transform_4326, width_4326, height_4326 = rasterio.warp.calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds
+        )
+        profile_4326 = src.profile.copy()
+        profile_4326.update(
+            crs=dst_crs,
+            transform=transform_4326,
+            width=width_4326,
+            height=height_4326,
+            dtype="float32",
+            nodata=-9999.0,
+        )
+        with rasterio.open(out_path, "w", **profile_4326) as dst:
+            rasterio.warp.reproject(
+                source=rasterio.band(src, 1),
+                destination=rasterio.band(dst, 1),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform_4326,
+                dst_crs=dst_crs,
+                resampling=rasterio.warp.Resampling.bilinear,
+                src_nodata=-9999.0,
+                dst_nodata=-9999.0,
+            )
+    Path(tmp_path).unlink()
 
     print(f"  Written: {out_path}")
     return out_path

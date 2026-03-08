@@ -1,0 +1,20 @@
+# Large data files — not needed for frontend
+data/
+models/
+outputs/
+tests/
+scripts/
+docs/
+*.parquet
+*.pkl
+*.grib2
+*.tif
+
+# Credentials and local config
+.env
+.env.example
+
+# Python
+__pycache__/
+*.pyc
+.DS_Store

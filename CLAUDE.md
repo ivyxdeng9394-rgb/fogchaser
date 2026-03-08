@@ -57,4 +57,7 @@ The project has a working fog prediction pipeline:
 Run tests:                          python3 -m pytest tests/spatial/ -v
 Run Phase 1 terrain setup (once):   see docs/spatial-layer-guide.md
 Run validation:                     python3 scripts/validate_spatial.py
+Manual data refresh + deploy:       fogrefresh   (shell alias — runs pipeline, commits manifest, pushes to GitHub → Vercel redeploys)
 ```
+
+`fogrefresh` requires a `.env` file in the project root with R2 credentials. Copy `.env.example` and fill in values from Cloudflare. GitHub Secrets store the same values for Actions but cannot be read back — go to Cloudflare dashboard to retrieve or recreate them.
