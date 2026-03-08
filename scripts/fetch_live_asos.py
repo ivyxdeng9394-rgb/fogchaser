@@ -76,7 +76,7 @@ def fetch_asos_latest(lookback_hours: int = 2,
         return pd.DataFrame()
 
     # Compute lag features
-    df["t_td_spread_lag"]   = (df["tmpf"] - df["dwpf"]).clip(lower=0)
+    df["t_td_spread_lag"]   = (pd.to_numeric(df["tmpf"], errors="coerce") - pd.to_numeric(df["dwpf"], errors="coerce")).clip(lower=0)
     df["wind_speed_mph_lag"] = pd.to_numeric(df["sknt"], errors="coerce") * 1.15078
     drct_rad = np.radians(pd.to_numeric(df["drct"], errors="coerce").fillna(0))
     df["drct_sin_lag"] = np.sin(drct_rad)
