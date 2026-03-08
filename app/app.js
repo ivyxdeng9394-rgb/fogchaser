@@ -239,11 +239,9 @@ function resetExplorer() {
   document.getElementById("prob-value").textContent = "—";
   document.getElementById("prob-label").textContent = "—";
   // Reset why section
-  document.getElementById("why-factors").classList.remove("visible");
-  document.getElementById("approx-note").classList.remove("visible", "visible-ready");
-  const whyToggleEl = document.getElementById("why-toggle");
-  whyToggleEl.style.display = "none";
-  whyToggleEl.classList.remove("expanded");
+  closeWhySection();
+  document.getElementById("approx-note").classList.remove("visible-ready");
+  document.getElementById("why-toggle").style.display = "none";
   // Reset plan section
   document.getElementById("plan-toggle").style.display = "none";
   closePlanSection();
@@ -261,9 +259,7 @@ function openPlanSection() {
   document.getElementById("plan-section").removeAttribute("aria-hidden");
   document.getElementById("plan-toggle").classList.add("expanded");
   // Close why section
-  document.getElementById("why-factors").classList.remove("visible");
-  document.getElementById("approx-note").classList.remove("visible");
-  document.getElementById("why-toggle").classList.remove("expanded");
+  closeWhySection();
 }
 
 function closePlanSection() {
