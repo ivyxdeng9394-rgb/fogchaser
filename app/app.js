@@ -735,7 +735,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeDepartureModal() {
     document.getElementById("departure-modal").classList.remove("open");
+    hideSuggestions();
   }
+
+  // ── Departure autocomplete ──────────────────────────────────────────────
+  let currentSuggestions = [];
+  let suggestionDebounce = null;
+
+  function hideSuggestions() {
+    clearTimeout(suggestionDebounce);
+    const list = document.getElementById("departure-suggestions");
+    list.classList.remove("visible");
+    list.innerHTML = "";
+    currentSuggestions = [];
+  }
+
+  function showSuggestions(results) {
+    currentSuggestions = results;
+    const list = document.getElementById("departure-suggestions");
+    list.innerHTML = "";
+    if (!results.length) { list.classList.remove("visible"); return; }
+    results.forEach((r, i) => {
+      const a = r.address || {};
+      const main = a.suburb || a.neighbourhood || a.city_district ||
+                   a.town || a.village || a.city ||
+                   r.display_name.split(",")[0];
+      const sub = [a.city || a.town, a.state].filter(Boolean).join(", ");
+      const li = document.createElement("li");
+      li.className = "departure-suggestion";
+      li.setAttribute("role", "option");
+      li.dataset.idx = i;
+      const mainEl = document.createElement("span");
+      mainEl.className = "suggestion-main";
+      mainEl.textContent = main;
+      const subEl = document.createElement("div");
+      subEl.className = "suggestion-sub";
+      subEl.textContent = sub;
+      li.appendChild(mainEl);
+      li.appendChild(subEl);
+      list.appendChild(li);
+    });
+    list.classList.add("visible");
+  }
+
+  async function fetchSuggestions(query) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&accept-language=en&addressdetails=1`;
+      const r = await fetch(url);
+      const results = await r.json();
+      showSuggestions(results);
+    } catch { hideSuggestions(); }
+  }
+
+  document.getElementById("departure-input").addEventListener("input", () => {
+    clearTimeout(suggestionDebounce);
+    const query = document.getElementById("departure-input").value.trim();
+    if (query.length < 3) { hideSuggestions(); return; }
+    suggestionDebounce = setTimeout(() => fetchSuggestions(query), 300);
+  });
+
+  document.getElementById("departure-suggestions").addEventListener("click", (e) => {
+    const li = e.target.closest(".departure-suggestion");
+    if (!li) return;
+    const r = currentSuggestions[parseInt(li.dataset.idx)];
+    if (!r) return;
+    const a = r.address || {};
+    const label = a.suburb || a.neighbourhood || a.city_district ||
+                  a.town || a.village || a.city ||
+                  r.display_name.split(",")[0];
+    saveDeparture(label, parseFloat(r.lat), parseFloat(r.lon));
+    renderDeparture();
+    hideSuggestions();
+    closeDepartureModal();
+  });
 
   document.getElementById("departure-edit").addEventListener("click", openDepartureModal);
   document.getElementById("departure-close").addEventListener("click", closeDepartureModal);
