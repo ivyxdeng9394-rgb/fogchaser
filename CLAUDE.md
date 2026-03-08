@@ -57,7 +57,53 @@ The project has a working fog prediction pipeline:
 Run tests:                          python3 -m pytest tests/spatial/ -v
 Run Phase 1 terrain setup (once):   see docs/spatial-layer-guide.md
 Run validation:                     python3 scripts/validate_spatial.py
-Manual data refresh + deploy:       fogrefresh   (shell alias — runs pipeline, commits manifest, pushes to GitHub → Vercel redeploys)
+Refresh forecast data:              fogrefresh
+Deploy code changes to Vercel:      vercel --prod   (run from project root)
 ```
 
-`fogrefresh` requires a `.env` file in the project root with R2 credentials. Copy `.env.example` and fill in values from Cloudflare. GitHub Secrets store the same values for Actions but cannot be read back — go to Cloudflare dashboard to retrieve or recreate them.
+## Deployment Architecture
+
+There are two separate systems. Keep them straight:
+
+**Cloudflare R2** — stores data (updated by `fogrefresh`)
+- GeoTIFF fog maps: one per forecast hour, ~1MB each
+- `manifest.json`: the index file the app fetches on load
+- Public base URL: `https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev`
+- `manifest.json` URL: `https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json`
+
+**Vercel** — serves the app (HTML/CSS/JS/favicon)
+- URL: `https://fogchaser.vercel.app`
+- NOT connected to the GitHub repo — must deploy manually with `vercel --prod`
+- Only needs redeployment when app code changes (HTML, CSS, JS, vercel.json)
+- Data refreshes do NOT require a Vercel redeploy
+
+**GitHub** — source of truth for code only
+- `main` branch
+- `app/data/manifest.json` is NOT committed to git (manifest lives on R2)
+- GitHub Actions is currently blocked on this account — automation is not running
+
+## fogrefresh — What It Does
+
+`fogrefresh` is a shell alias defined in `~/.bash_profile`. It runs `scripts/refresh_forecast.sh`, which does the following in order:
+
+1. Loads R2 credentials from `.env`
+2. Runs `scripts/run_live_forecast.py`:
+   - Finds the most recent HRRR model run
+   - Fetches live ASOS observations from IEM for 8 DC metro stations
+   - For each of the next 12 forecast hours (fxx=1–12):
+     - Downloads HRRR variables for that hour
+     - Runs the XGBoost model → calibrated fog probabilities per station
+     - Runs the spatial pipeline (IDW + terrain offset) → GeoTIFF fog map
+     - Uploads GeoTIFF to R2
+   - Writes `manifest.json` with URLs, scores, labels, and conditions per hour
+   - Uploads `manifest.json` to R2 (with `no-cache` header)
+3. Done — no git commit, no Vercel deploy needed
+
+**To refresh forecast data:** run `fogrefresh` in terminal from any directory.
+**Requires:** `.env` file in project root with R2 credentials. Copy `.env.example` and fill in values from the Cloudflare dashboard. Never commit `.env`.
+
+## Credentials
+
+- **R2 credentials** — stored in `.env` (local) and Cloudflare dashboard. GitHub Secrets cannot be read back once set — go to Cloudflare to retrieve or recreate.
+- **Vercel** — logged in via `vercel` CLI. Run `vercel whoami` to confirm.
+- **`.env` template** — see `.env.example` in project root.
