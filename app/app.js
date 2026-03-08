@@ -74,6 +74,10 @@ function cellHourLabel(valid_utc) {
   return `${hour}${ampm}`;
 }
 
+function dateLabel(valid_utc) {
+  return new Date(valid_utc).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: ET });
+}
+
 function timeAgo(isoStr) {
   const diff = (Date.now() - new Date(isoStr).getTime()) / 60000;
   if (diff < 60) return `${Math.round(diff)}m ago`;
@@ -174,6 +178,12 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.p
   subdomains: "abcd",
   maxZoom: 20,
 }).addTo(map);
+
+// Coverage boundary — dashed rectangle showing prediction area extent
+L.rectangle(
+  [[38.5, -77.7], [39.4, -76.8]],
+  { color: "#a89e92", weight: 1.5, dashArray: "5 6", fill: false, opacity: 0.45, interactive: false }
+).addTo(map);
 
 // Legend
 const LegendControl = L.Control.extend({
@@ -287,20 +297,17 @@ async function init() {
   document.getElementById("updated-label").textContent =
     timeAgo(manifest.generated_utc);
 
-  // Tonight bar: overnight average (23–07 UTC)
-  const overnight = manifest.hours.filter(h => {
-    const hr = parseInt(h.valid_utc.slice(11, 13));
-    return hr >= 23 || hr <= 7;
-  });
-  const forBadge  = overnight.length > 0 ? overnight : manifest.hours;
+  // Summary bar: average across all forecast hours (next 12h ET)
+  const forBadge  = manifest.hours;
   const avgOvn    = forBadge.reduce((s, h) => s + h.avg_prob, 0) / forBadge.length;
   const ovnScore  = fogScore(avgOvn);
   const ovnLabel  = fogLabel(avgOvn);
   const riskStr   = relativeRisk(avgOvn);
 
   // Find peak hour for best-window hint
-  const peakHour  = forBadge.reduce((b, h) => h.avg_prob > b.avg_prob ? h : b, forBadge[0]);
-  const { time: peakTime } = formatHour(peakHour.valid_utc);
+  const peakHour   = forBadge.reduce((b, h) => h.avg_prob > b.avg_prob ? h : b, forBadge[0]);
+  const peakHrComp = cellHourLabel(peakHour.valid_utc);
+  const peakDate   = dateLabel(peakHour.valid_utc);
 
   const scoreEl   = document.getElementById("tonight-score");
   const textEl    = document.getElementById("tonight-text");
@@ -308,12 +315,16 @@ async function init() {
   scoreEl.textContent = `${ovnScore}/5 — ${ovnLabel}`;
   scoreEl.className   = ovnScore >= 3 ? "go" : ovnScore === 2 ? "warn" : "skip";
 
-  const firstTime = formatHour(forBadge[0].valid_utc).time;
-  const lastTime  = formatHour(forBadge[forBadge.length - 1].valid_utc).time;
-  const window12  = `${firstTime} -- ${lastTime} ET`;
+  const firstDate = dateLabel(forBadge[0].valid_utc);
+  const lastDate  = dateLabel(forBadge[forBadge.length - 1].valid_utc);
+  const firstComp = cellHourLabel(forBadge[0].valid_utc);
+  const lastComp  = cellHourLabel(forBadge[forBadge.length - 1].valid_utc);
+  const window12  = firstDate === lastDate
+    ? `${firstDate}, ${firstComp} – ${lastComp} ET`
+    : `${firstDate}, ${firstComp} – ${lastDate}, ${lastComp} ET`;
 
   if (ovnScore >= 3) {
-    textEl.textContent = `Peak around ${peakTime} ET · ${riskStr}× above normal · Worth setting an alarm`;
+    textEl.textContent = `Peak around ${peakDate}, ${peakHrComp} ET · ${riskStr}× above normal · Worth setting an alarm`;
   } else if (ovnScore === 2) {
     textEl.textContent = `${window12} · Low signal, patchy fog possible`;
   } else {

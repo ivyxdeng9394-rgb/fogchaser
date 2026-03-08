@@ -93,9 +93,12 @@ def fetch_hrrr_forecast_hour(run_time: datetime, fxx: int,
     if save_dir is None:
         save_dir = os.environ.get("HRRR_CACHE_DIR", "/tmp/hrrr_cache")
 
+    # Herbie expects a tz-naive UTC datetime — strip tzinfo if present
+    run_time_naive = run_time.replace(tzinfo=None) if run_time.tzinfo else run_time
+
     for attempt in range(3):
         try:
-            H = Herbie(run_time, model="hrrr", product="sfc", fxx=fxx,
+            H = Herbie(run_time_naive, model="hrrr", product="sfc", fxx=fxx,
                        save_dir=save_dir)
             result = H.xarray(HRRR_SEARCH)
 
@@ -103,11 +106,6 @@ def fetch_hrrr_forecast_hour(run_time: datetime, fxx: int,
                 ds = xr.merge(result, compat="override", join="override")
             else:
                 ds = result
-
-            # Ensure valid_time is timezone-aware (MEMORY.md gotcha)
-            if "valid_time" in ds and hasattr(ds["valid_time"], "dt"):
-                if ds["valid_time"].dt.tz is None:
-                    ds["valid_time"] = ds["valid_time"].dt.tz_localize("UTC")
 
             return extract_station_values(ds, station_coords)
 

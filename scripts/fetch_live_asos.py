@@ -58,6 +58,8 @@ def fetch_asos_latest(lookback_hours: int = 2,
 
     df = pd.read_csv(StringIO("\n".join(lines)))
     df.columns = df.columns.str.strip()
+    # IEM returns station IDs without the K prefix (e.g. "DCA" not "KDCA") — normalize
+    df["station"] = df["station"].apply(lambda s: s if s.startswith("K") else "K" + s)
     df["valid"] = pd.to_datetime(df["valid"], utc=True, errors="coerce")
     df = df.dropna(subset=["valid"])
 
@@ -79,7 +81,7 @@ def fetch_asos_latest(lookback_hours: int = 2,
     drct_rad = np.radians(pd.to_numeric(df["drct"], errors="coerce").fillna(0))
     df["drct_sin_lag"] = np.sin(drct_rad)
     df["drct_cos_lag"] = np.cos(drct_rad)
-    df["elevation"]    = pd.to_numeric(df["elev"], errors="coerce")
+    df["elevation"]    = pd.to_numeric(df["elevation"], errors="coerce")
 
     return df[["station", "elevation", "t_td_spread_lag",
                "wind_speed_mph_lag", "drct_sin_lag", "drct_cos_lag"]].copy()
