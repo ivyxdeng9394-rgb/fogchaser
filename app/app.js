@@ -493,6 +493,20 @@ async function init() {
     });
   });
 
+  // Mobile tap-to-jump: map touch X to nearest hour
+  slider.addEventListener("touchstart", (e) => {
+    const touch = e.touches[0];
+    const rect = slider.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+    const idx = Math.round(ratio * slider.max);
+    slider.value = idx;
+    updateSliderFill();
+    showHour(idx);
+    if (currentClickLatLng && document.getElementById("plan-section").classList.contains("visible")) {
+      renderLightingTimes(currentClickLatLng.lat, currentClickLatLng.lng, manifest.hours[idx].valid_utc);
+    }
+  }, { passive: true });
+
   map.on("click", onMapClick);
 }
 
