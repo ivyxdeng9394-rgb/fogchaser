@@ -1,4 +1,5 @@
-const MANIFEST_URL = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json";
+const MANIFEST_URL  = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/manifest.json";
+const TERRAIN_URL   = "https://pub-e433cc0481d6494280712cc9b1e4100e.r2.dev/terrain_offset.tif";
 const DC_CENTER = [38.95, -77.05];
 const DC_ZOOM   = 10;
 
@@ -147,6 +148,14 @@ function conditionBullets(conditions) {
     bullets.push("Humidity is near maximum — air is holding as much moisture as it can");
 
   return bullets;
+}
+
+function terrainBullet(offset) {
+  if (offset == null) return null;
+  if (offset > 0.25)  return "Low-lying valley or sheltered hollow — cold air pools here, raising local fog likelihood";
+  if (offset > 0.10)  return "Low-lying terrain — slightly more fog-prone than surrounding higher ground";
+  if (offset >= -0.05) return "Average terrain — no strong terrain effect on fog at this location";
+  return "Elevated or open area — fog less likely to settle here than in nearby valleys";
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -348,6 +357,9 @@ async function init() {
 
   document.getElementById("loading").style.display = "none";
 
+  // Preload terrain GeoRaster in background so first click is fast
+  loadGeoRaster(TERRAIN_URL).catch(() => {});
+
   slider.addEventListener("input", () => {
     const idx = parseInt(slider.value);
     showHour(idx);
@@ -464,10 +476,11 @@ async function onMapClick(e) {
   openSheet();
   panMapForSheet(e.latlng);
 
-  // Geocode + identify in parallel
-  const [locationName, gr] = await Promise.all([
+  // Geocode + identify in parallel (terrain preloaded at startup, so this is fast)
+  const [locationName, gr, terrainGr] = await Promise.all([
     reverseGeocode(e.latlng.lat, e.latlng.lng),
     loadGeoRaster(h.url),
+    loadGeoRaster(TERRAIN_URL),
   ]);
 
   // Location: prefer geocoded name, fall back to nearest station
@@ -485,6 +498,12 @@ async function onMapClick(e) {
     if (results?.[0] != null && results[0] > -9990) prob = results[0];
   } catch (_) {}
 
+  let terrainOffset = null;
+  try {
+    const tr = await geoblaze.identify(terrainGr, [e.latlng.lng, e.latlng.lat]);
+    if (tr?.[0] != null && tr[0] > -1.0 && tr[0] < 1.0) terrainOffset = tr[0];
+  } catch (_) {}
+
   if (prob == null) {
     document.getElementById("prob-label").textContent = "No data at this location.";
     return;
@@ -496,8 +515,10 @@ async function onMapClick(e) {
   document.getElementById("prob-label").textContent =
     `${Math.round(prob * 100)}% probability  ·  ${relativeRisk(prob)}× above normal`;
 
-  // Contributing factors — populate but hide behind toggle
+  // Contributing factors — atmospheric (regional) + terrain (location-specific)
   const bullets = conditionBullets(h.conditions);
+  const tb = terrainBullet(terrainOffset);
+  if (tb) bullets.push(tb);
   const factorsEl  = document.getElementById("why-factors");
   const toggleEl   = document.getElementById("why-toggle");
   const approxEl   = document.getElementById("approx-note");
