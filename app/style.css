@@ -123,6 +123,13 @@ body {
   cursor: crosshair;
 }
 
+/* Remove sub-pixel seams between GeoRasterLayer canvas tiles */
+.leaflet-layer canvas {
+  display: block;
+  border: none;
+  outline: none;
+}
+
 /* ── Legend ──────────────────────────────────────────────────────────────── */
 
 .map-legend {
