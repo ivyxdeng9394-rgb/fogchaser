@@ -802,7 +802,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const url = buildNavURL(currentClickLatLng.lat, currentClickLatLng.lng, dep);
-    if (url) window.open(url, "_blank", "noopener");
+    if (url) {
+      // iOS: assign to current location so the universal link is intercepted cleanly
+      // — Apple Maps opens, fogchaser stays, no about:blank tab left behind.
+      // Non-iOS: open Google Maps in a new tab so fogchaser stays open.
+      if (isIOS()) { window.location.href = url; }
+      else { window.open(url, "_blank", "noopener"); }
+    }
   });
 
   (function () {
