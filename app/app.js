@@ -66,8 +66,8 @@ function computeLightingTimes(lat, lon, date) {
     { label: "Nautical dawn",    time: formatET(t.nauticalDawn) },
     { label: "Civil dawn",       time: formatET(t.dawn) },
     { label: "Sunrise",          time: formatET(t.sunrise) },
-    { label: "Golden hour ends", time: formatET(t.goldenHourEnd) },
-    { label: "Golden hour",      time: formatET(t.goldenHour) },
+    { label: "Morning golden hour ends", time: formatET(t.goldenHourEnd) },
+    { label: "Evening golden hour starts", time: formatET(t.goldenHour) },
     { label: "Sunset",           time: formatET(t.sunset) },
     { label: "Civil dusk",       time: formatET(t.dusk) },
   ];
