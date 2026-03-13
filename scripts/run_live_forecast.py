@@ -29,7 +29,7 @@ import pandas as pd
 OUTPUT_DIR     = "/tmp/fog_output"   # local staging only — not committed
 MANIFEST_PATH  = "app/data/manifest.json"
 FORECAST_FXX   = range(1, 13)       # fxx=1 through fxx=12 (skip fxx=0 analysis)
-HRRR_RUN_HOURS = [0, 6, 12, 18]
+HRRR_RUN_HOURS = list(range(24))
 
 # Fog Risk Score thresholds — must match fogScore() in app.js exactly
 _SCORE_THRESHOLDS = [0.08, 0.13, 0.17, 0.22]
