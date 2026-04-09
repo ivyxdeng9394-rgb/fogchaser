@@ -31,6 +31,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Replace xgboost GPU build with CPU-only
+        # xgboost's Linux wheel pulls in nvidia-nccl-cu12 which segfaults on
+        # CPU-only runners when predict_proba() is first called (lazy CUDA init).
+        # Must uninstall both xgboost AND nccl before installing xgboost-cpu,
+        # because pip leaves orphaned dependencies behind.
+        run: |
+          pip uninstall -y xgboost nvidia-nccl-cu12 || true
+          pip install xgboost-cpu==2.1.4
+
       - name: Run forecast pipeline
         env:
           R2_ACCOUNT_ID:         ${{ secrets.R2_ACCOUNT_ID }}
