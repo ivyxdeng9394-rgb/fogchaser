@@ -34,6 +34,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Replace xgboost with CPU-only build
+        # The default Linux xgboost wheel includes CUDA GPU support and segfaults
+        # on CPU-only runners. xgboost-cpu is the official CPU-only alternative.
+        run: pip install --force-reinstall xgboost-cpu==2.1.4
+
       - name: Run forecast pipeline
         env:
           R2_ACCOUNT_ID:         ${{ secrets.R2_ACCOUNT_ID }}
