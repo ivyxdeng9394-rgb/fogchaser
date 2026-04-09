@@ -2,10 +2,9 @@ name: Fog Forecast
 
 on:
   schedule:
-    # 30min after each HRRR run: :30 at 00, 06, 12, 18 UTC
-    # Running at :30 (not :01) gives HRRR files time to be fully published,
-    # especially fxx=10-12 which are published last.
-    - cron: "30 0,6,12,18 * * *"
+    # Run every hour at :30 past — gives HRRR ~30min after the model run hour
+    # to finish publishing all forecast hours (fxx=10-12 are published last).
+    - cron: "30 * * * *"
   workflow_dispatch:   # manual trigger from GitHub UI for testing
 
 # Cancel any in-progress run when a new one starts — prevents job queue buildup
@@ -19,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45   # hard cap — prevents hung jobs from blocking future runs
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -45,12 +44,3 @@ jobs:
           HRRR_CACHE_DIR:        /tmp/hrrr_cache
         run: python3 scripts/run_live_forecast.py
 
-      - name: Commit updated manifest
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name  "GitHub Actions"
-          git pull --rebase origin main
-          git add app/data/manifest.json
-          git diff --cached --quiet || \
-            git commit -m "forecast: $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push
