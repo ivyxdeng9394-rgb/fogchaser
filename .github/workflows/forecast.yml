@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   forecast:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 45   # hard cap — prevents hung jobs from blocking future runs
     permissions:
       contents: read
@@ -47,5 +47,6 @@ jobs:
           R2_BUCKET_NAME:        ${{ secrets.R2_BUCKET_NAME }}
           R2_PUBLIC_URL:         ${{ secrets.R2_PUBLIC_URL }}
           HRRR_CACHE_DIR:        /tmp/hrrr_cache
+          PYTHONFAULTHANDLER:    "1"
         run: python3 scripts/run_live_forecast.py
 
