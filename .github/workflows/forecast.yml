@@ -28,16 +28,18 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Replace xgboost GPU build with CPU-only
-        # xgboost's Linux wheel pulls in nvidia-nccl-cu12 which segfaults on
-        # CPU-only runners when predict_proba() is first called (lazy CUDA init).
-        # Must uninstall both xgboost AND nccl before installing xgboost-cpu,
-        # because pip leaves orphaned dependencies behind.
         run: |
+          pip install -r requirements.txt
+          # nvidia-nccl-cu12 is pulled in by the xgboost GPU wheel and segfaults
+          # on CPU-only runners during dynamic library loading (before Python even starts).
+          # Replace with the CPU-only build in the same step so it cannot be skipped.
           pip uninstall -y xgboost nvidia-nccl-cu12 || true
           pip install xgboost-cpu==2.1.4
+
+      - name: Verify xgboost and nccl state
+        run: |
+          python3 -c "import xgboost; print('xgboost:', xgboost.__version__)"
+          python3 -c "import nvidia_nccl_cu12; print('ERROR: nccl still installed')" 2>/dev/null || echo "OK: nvidia-nccl-cu12 not present"
 
       - name: Run forecast pipeline
         env:
