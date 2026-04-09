@@ -198,7 +198,7 @@ def main(override_run_time=None):
 
             tif_local = run_spatial_pipeline(
                 station_probs=probs, station_lats=lats, station_lons=lons,
-                terrain_offset_path="data/processed/terrain_offset_4326.tif",
+                terrain_offset_path="data/processed/terrain_offset_grid.tif",
                 output_dir=OUTPUT_DIR, valid_dt=valid_dt,
             )
 
