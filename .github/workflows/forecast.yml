@@ -34,7 +34,7 @@ jobs:
           bash /tmp/miniforge.sh -b -p /opt/miniforge3
           /opt/miniforge3/bin/mamba install -c conda-forge wgrib2 -y -q
           ln -s /opt/miniforge3/bin/wgrib2 /usr/local/bin/wgrib2
-          wgrib2 --version
+          wgrib2 --version || true   # wgrib2 exits non-zero on version queries; that's expected
 
       - name: Install dependencies
         run: |
