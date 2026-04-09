@@ -27,9 +27,17 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install wgrib2
+        run: |
+          # wgrib2 is not in Ubuntu apt repos — install via conda-forge
+          curl -fsSL https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -o /tmp/miniforge.sh
+          bash /tmp/miniforge.sh -b -p /opt/miniforge3
+          /opt/miniforge3/bin/mamba install -c conda-forge wgrib2 -y -q
+          ln -s /opt/miniforge3/bin/wgrib2 /usr/local/bin/wgrib2
+          wgrib2 --version
+
       - name: Install dependencies
         run: |
-          sudo apt-get install -y wgrib2
           pip install -r requirements.txt
           # nvidia-nccl-cu12 is pulled in by the xgboost GPU wheel and segfaults
           # on CPU-only runners during dynamic library loading (before Python even starts).
