@@ -29,6 +29,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get install -y wgrib2
           pip install -r requirements.txt
           # nvidia-nccl-cu12 is pulled in by the xgboost GPU wheel and segfaults
           # on CPU-only runners during dynamic library loading (before Python even starts).

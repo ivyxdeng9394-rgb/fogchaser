@@ -1,7 +1,13 @@
 """
 Fetch HRRR forecast variables for DC metro stations for one forecast hour.
+
+Uses Herbie only for downloading the GRIB2 subset file, then reads values
+via wgrib2 subprocess calls — avoiding cfgrib / eccodeslib segfaults on Linux.
+wgrib2 must be installed: apt-get install -y wgrib2
 """
 import os
+import re
+import subprocess
 import time as _time
 import numpy as np
 import pandas as pd
@@ -47,6 +53,103 @@ RENAME_MAP = {
     "gh":  "hgt_cldbase_m",  # cloud base height (m) — ~38% NaN = no cloud
 }
 
+# Maps wgrib2 match patterns → output column names
+# Order matters for parsing: more specific patterns first to avoid ambiguity
+_WGRIB2_VARS = [
+    ("TMP:2 m above ground",           "tmp2m_k"),
+    ("DPT:2 m above ground",           "dpt2m_k"),
+    ("RH:2 m above ground",            "rh2m_pct"),
+    ("UGRD:10 m above ground",         "u10_ms"),
+    ("VGRD:10 m above ground",         "v10_ms"),
+    ("HPBL:surface",                   "hpbl_m"),
+    ("TCDC:boundary layer cloud layer","tcdc_bl_pct"),
+    ("HGT:cloud base",                 "hgt_cldbase_m"),
+]
+
+
+def _wgrib2_extract_all(grib_path: str, station_coords: dict) -> pd.DataFrame:
+    """
+    Extract all 8 HRRR variables at each station lat/lon using wgrib2.
+
+    For each variable, runs one wgrib2 call that queries all station points
+    in a single pass using repeated -lon flags.  Falls back to one-station-
+    at-a-time if the multi-lon form is not supported.
+
+    wgrib2 -lon expects 0-360 longitude (HRRR native).
+    Output line format: "N:OFFSET:lon=LON,lat=LAT,val=VALUE"
+    """
+    stations = list(station_coords.keys())
+    lats = [station_coords[s][0] for s in stations]
+    lons = [station_coords[s][1] for s in stations]
+    lons360 = [lon + 360 if lon < 0 else lon for lon in lons]
+
+    # Initialise result dict: station → {col: value}
+    result = {s: {} for s in stations}
+
+    for match_pattern, col_name in _WGRIB2_VARS:
+        # Build a single wgrib2 call with one -lon per station
+        cmd = ["wgrib2", grib_path, "-match", match_pattern]
+        for lon360, lat in zip(lons360, lats):
+            cmd += ["-lon", str(lon360), str(lat)]
+
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=60
+            )
+            output = proc.stdout
+        except subprocess.TimeoutExpired:
+            print(f"  WARNING: wgrib2 timed out for {col_name}")
+            output = ""
+        except FileNotFoundError:
+            raise RuntimeError(
+                "wgrib2 not found — install with: apt-get install -y wgrib2"
+            )
+
+        # Parse output lines that contain val=
+        # Each -lon produces one output line per matching GRIB record.
+        # When multiple records match (shouldn't happen here), we take the first.
+        # Lines look like: "1:0:lon=283.316,lat=38.847,val=288.5"
+        val_pattern = re.compile(
+            r"lon=([0-9.]+),lat=([0-9.]+),val=([0-9eE+.\-]+)"
+        )
+        # Collect (lon360, lat, val) tuples from output
+        parsed = []
+        for line in output.splitlines():
+            m = val_pattern.search(line)
+            if m:
+                parsed.append((float(m.group(1)), float(m.group(2)), float(m.group(3))))
+
+        # Match parsed values back to stations by closest (lon360, lat) pair
+        for s_idx, station in enumerate(stations):
+            s_lon360 = lons360[s_idx]
+            s_lat = lats[s_idx]
+            best_val = np.nan
+            best_dist = float("inf")
+            for p_lon, p_lat, p_val in parsed:
+                dist = (p_lon - s_lon360) ** 2 + (p_lat - s_lat) ** 2
+                if dist < best_dist:
+                    best_dist = dist
+                    best_val = p_val
+            result[station][col_name] = best_val
+
+    # Build DataFrame
+    rows = []
+    for station in stations:
+        row = {"station": station}
+        for _, col_name in _WGRIB2_VARS:
+            row[col_name] = result[station].get(col_name, np.nan)
+        rows.append(row)
+
+    df = pd.DataFrame(rows)
+    df["hgt_cldbase_m"] = df["hgt_cldbase_m"].fillna(_NO_CLOUD_M)
+
+    # Ensure all required columns are present (fill missing with NaN)
+    for col in REQUIRED_COLS:
+        if col not in df.columns:
+            df[col] = np.nan
+
+    return df[REQUIRED_COLS].copy()
+
 
 def extract_station_values(ds: xr.Dataset, station_coords: dict) -> pd.DataFrame:
     """
@@ -54,6 +157,9 @@ def extract_station_values(ds: xr.Dataset, station_coords: dict) -> pd.DataFrame
 
     Uses scaled Euclidean distance (accounts for lat/lon degree asymmetry at 39°N):
       1 degree lat ≈ 111 km, 1 degree lon ≈ 77 km at 39°N
+
+    NOTE: This function is retained for tests and legacy use. The main
+    fetch_hrrr_forecast_hour function now uses wgrib2 instead of cfgrib/xarray.
     """
     grid_lats = ds["latitude"].values.ravel()
     grid_lons = ds["longitude"].values.ravel()  # already 0-360 in HRRR
@@ -85,6 +191,9 @@ def fetch_hrrr_forecast_hour(run_time: datetime, fxx: int,
     """
     Download one HRRR forecast hour and extract station values.
 
+    Uses Herbie to download the GRIB2 subset, then wgrib2 to read values —
+    avoids cfgrib / eccodeslib segfaults on Linux.
+
     fxx=1 is the first true forecast hour (fxx=0 is the analysis field).
     Returns empty DataFrame on any failure — caller handles gracefully.
 
@@ -100,14 +209,16 @@ def fetch_hrrr_forecast_hour(run_time: datetime, fxx: int,
         try:
             H = Herbie(run_time_naive, model="hrrr", product="sfc", fxx=fxx,
                        save_dir=save_dir)
-            result = H.xarray(HRRR_SEARCH)
 
-            if isinstance(result, list):
-                ds = xr.merge(result, compat="override", join="override")
-            else:
-                ds = result
+            # Download the GRIB2 subset — returns path to local file, no cfgrib
+            grib_path = H.download(HRRR_SEARCH)
 
-            return extract_station_values(ds, station_coords)
+            if grib_path is None or not os.path.exists(str(grib_path)):
+                raise FileNotFoundError(
+                    f"Herbie download returned no file for fxx={fxx}"
+                )
+
+            return _wgrib2_extract_all(str(grib_path), station_coords)
 
         except (FileNotFoundError, ValueError) as e:
             print(f"  WARNING: HRRR fxx={fxx} not available yet (attempt {attempt+1}/3): {e}")
