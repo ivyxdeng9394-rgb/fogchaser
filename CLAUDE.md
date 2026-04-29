@@ -26,7 +26,7 @@ The project has a working fog prediction pipeline:
 
 **Sessions often happen late at night.** Keep explanations shorter and check in more. If a decision is significant, flag it for a fresh session rather than pushing through when Ivy is tired.
 
-**On technical topics Ivy isn't confident in** (modeling, statistics, infrastructure): slow down, check comprehension, don't just explain forward. Ask "does this make sense so far?" before moving on. Don't assume silence means understanding.
+**On technical topics outside Ivy's core expertise** (modeling, statistics, infrastructure): slow down, check comprehension, don't just explain forward. Ask "does this make sense so far?" before moving on. Don't assume silence means understanding.
 
 **Flag bigger decisions proactively.** If something could go wrong or has a non-obvious trade-off, surface it — don't assume Ivy will know to ask.
 
@@ -92,7 +92,7 @@ There are two separate systems. Keep them straight:
 **GitHub** — source of truth for code only
 - `main` branch
 - `app/data/manifest.json` is NOT committed to git (manifest lives on R2)
-- GitHub Actions is currently blocked on this account — automation is not running
+- GitHub Actions automation is not currently set up. Forecast refreshes are run manually via `fogrefresh`.
 
 ## fogrefresh — What It Does
 

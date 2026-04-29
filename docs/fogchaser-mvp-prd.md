@@ -1,8 +1,8 @@
 # Fogchaser — Product Requirements Document
 
-**Last updated:** 2026-02-28
-**Status:** Draft — in progress
-**Author:** Ivy + Claude
+**Last updated:** 2026-04-28
+**Status:** Living document. Phase 1 (MVP) shipped March 2026. See README for current implementation state.
+**Author:** Ivy Deng. Drafted with Claude Code.
 
 > **Citation format:** Inline markers like [B3] refer to the Bibliography at the end of this document. Sources are grouped by category: [A] = NOAA/NWS Official Resources, [B] = Academic Research Papers, [C] = Data Sources & Access Tools, [D] = Industry & Community Sources.
 
@@ -330,7 +330,7 @@ XGBoost or gradient boosted model trained on ASOS fog event labels + HRRR atmosp
 
 This is the only metric that truly validates the product. If the app changes a photographer's behavior and that behavior produces a result they value, the product works. If it doesn't change behavior, or changes behavior but the fog isn't there, it doesn't matter how technically impressive the model is.
 
-For the personal MVP, this is measured informally: did your husband (or you) actually use it to make a go/no-go decision? Did you go? Was fog there?
+For the personal MVP, this is measured informally: did the user (initially: me and my husband) actually use it to make a go/no-go decision? Did you go? Was fog there?
 
 **Leading Indicators**
 

@@ -143,3 +143,9 @@ Key docs:
 ## Background
 
 Built as a personal project to explore the intersection of weather modeling, geospatial analysis, and product design. The core question driving the build: *can a small ensemble of point observations, combined with terrain data, produce a meaningful fog probability map?* The answer turned out to be yes — with the right interpolation approach and enough training data.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
