@@ -53,6 +53,12 @@ def fetch_asos_latest(lookback_hours: int = 2,
         print("  WARNING: ASOS response empty or header-only")
         return pd.DataFrame()
 
+    # Guard against IEM returning error pages or unexpected text instead of CSV.
+    # The expected first non-comment line is always "station,valid,...".
+    if not lines[0].startswith("station,"):
+        print(f"  WARNING: Unexpected IEM response (not CSV). First line: {lines[0][:120]!r}")
+        return pd.DataFrame()
+
     # IEM returns HTTP 200 with empty data when stations have no recent obs.
     # Check for missing stations after parsing — do not treat a 0-station 200 as success.
 
