@@ -15,15 +15,19 @@ concurrency:
 
 jobs:
   forecast:
-    runs-on: ubuntu-latest
+    # Pinned, NOT ubuntu-latest: the ubuntu-latest label began migrating to
+    # Ubuntu 26 on 2026-10-19. This pipeline's native stack (eccodeslib /
+    # eckitlib / pygrib / pyproj) is sensitive to OS-level library changes —
+    # a C++ lib bump alone took it down. Bump deliberately, with a test run.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45   # hard cap — prevents hung jobs from blocking future runs
     permissions:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
