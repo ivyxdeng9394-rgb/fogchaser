@@ -11,9 +11,17 @@ scikit-learn==1.6.1
 pytest>=7.4
 cffi<2  # cffi 2.0.0 breaks eccodes C bindings on Linux, causing segfault in cfgrib
 
-# eccodes is a transitive dep of herbie-data (via pygrib). Unpinned it resolves to
-# the latest release, and 2.49.0+ aborts at import time with std::bad_alloc in
-# pyproj's C extension (exit 134) on ubuntu-24.04 runners — before any forecast
-# logic runs. 2.48.0 is the last version the pipeline ran successfully on
-# (2026-09-01). Same failure family as the cffi<2 pin above.
+# ECMWF native library stack — pinned to the versions the pipeline last ran
+# successfully on (2026-09-01). `eccodes` is only the thin Python binding;
+# `eccodeslib` and `eckitlib` are the compiled C/C++ libraries it loads, and
+# they version INDEPENDENTLY — pinning eccodes alone does not hold them back.
+#
+# eccodeslib 2.50.0.33 / eckitlib 2.5.0.33 abort at import time with
+# std::bad_alloc (exit 134, SIGABRT) while pyproj's _network C extension is
+# created, before any forecast logic runs. std::bad_alloc is a C++ exception
+# and eckit is ECMWF's C++ toolkit, which jumped 2.1.1 -> 2.5.0.
+#
+# Same failure family as the cffi<2 pin above. Unpin only with a CI run to prove it.
 eccodes==2.48.0
+eccodeslib==2.48.0.26
+eckitlib==2.1.1.26
