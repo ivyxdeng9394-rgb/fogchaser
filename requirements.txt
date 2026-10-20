@@ -10,3 +10,10 @@ requests==2.32.5
 scikit-learn==1.6.1
 pytest>=7.4
 cffi<2  # cffi 2.0.0 breaks eccodes C bindings on Linux, causing segfault in cfgrib
+
+# eccodes is a transitive dep of herbie-data (via pygrib). Unpinned it resolves to
+# the latest release, and 2.49.0+ aborts at import time with std::bad_alloc in
+# pyproj's C extension (exit 134) on ubuntu-24.04 runners — before any forecast
+# logic runs. 2.48.0 is the last version the pipeline ran successfully on
+# (2026-09-01). Same failure family as the cffi<2 pin above.
+eccodes==2.48.0
