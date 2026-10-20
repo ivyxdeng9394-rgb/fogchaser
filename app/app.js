@@ -235,10 +235,14 @@ map = L.map("map", {
   minZoom: 9,
 });
 
-// Base: dark, no labels — fog overlay goes over this
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: "abcd",
+// Base: dark, no labels — fog overlay goes over this.
+// Esri Dark Gray Canvas, not CARTO: as of Oct 2026 CARTO requires an API key and
+// serves an "API KEY REQUIRED" watermark tile instead of the map.
+// Esri only renders tiles through z16, so maxNativeZoom caps the fetch and lets
+// Leaflet upscale beyond it. Without that, zooming past 16 shows blank tiles.
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+  attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
+  maxNativeZoom: 16,
   maxZoom: 20,
 }).addTo(map);
 
@@ -246,9 +250,9 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
 const labelsPane = map.createPane("labels");
 labelsPane.style.zIndex = 650;
 labelsPane.style.pointerEvents = "none";
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
   pane: "labels",
-  subdomains: "abcd",
+  maxNativeZoom: 16,
   maxZoom: 20,
 }).addTo(map);
 
